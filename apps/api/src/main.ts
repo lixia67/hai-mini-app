@@ -1,6 +1,8 @@
 import 'reflect-metadata';
-import { Module, Controller, Get } from '@nestjs/common';
+import { Controller, Get, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { HttpExceptionFilter } from './common/http-exception.filter';
+import { IamModule } from './iam/iam.module';
 
 @Controller('health')
 class HealthController {
@@ -10,12 +12,16 @@ class HealthController {
   }
 }
 
-@Module({ controllers: [HealthController] })
+@Module({
+  imports: [IamModule],
+  controllers: [HealthController],
+})
 class AppModule {}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api/v1');
+  app.useGlobalFilters(new HttpExceptionFilter());
   await app.listen(Number(process.env.API_PORT ?? 3000));
 }
 
