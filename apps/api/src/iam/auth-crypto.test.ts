@@ -16,10 +16,11 @@ describe('IAM crypto', () => {
   });
 
   it('signs and verifies access tokens', () => {
-    const token = signAccessToken({ sub: '42', kind: 'staff', permissions: ['inventory.read'], dataScope: 'ASSIGNED_STORES', assignedStoreIds: ['7'] }, 'jwt-secret', 60, 1000);
+    const token = signAccessToken({ sub: '42', kind: 'staff', permissions: ['inventory.read'], dataScopes: ['ASSIGNED_STORES'], assignedStoreIds: ['7'] }, 'jwt-secret', 60, 1000);
     const claims = verifyAccessToken(token, 'jwt-secret', 1010);
     expect(claims.sub).toBe('42');
     expect(claims.permissions).toContain('inventory.read');
+    expect(claims.dataScopes).toContain('ASSIGNED_STORES');
   });
 
   it('rejects expired or tampered access tokens', () => {
