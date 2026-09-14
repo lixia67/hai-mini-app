@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable, SetMetadata, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { verifyAccessToken, type AccessTokenClaims } from './auth-crypto';
-import { hasPermission, isResourceVisible, type AuthorizationContext, type DataScope } from './access-control';
+import { canAccessResource, hasPermission, type DataScopeType, type StaffAccessContext } from './access-control';
 
 const REQUIRED_PERMISSION = 'required_permission';
 const RESOURCE_SCOPE = 'resource_scope';
@@ -38,12 +38,13 @@ export class AuthorizationGuard implements CanActivate {
 
     const requiredPermission = this.reflector.getAllAndOverride<string | undefined>(REQUIRED_PERMISSION, [context.getHandler(), context.getClass()]);
     if (!requiredPermission) return true;
+    if (claims.kind !== 'staff') throw new ForbiddenException('Staff identity required');
 
-    const authz: AuthorizationContext = {
-      subjectId: claims.sub,
-      permissions: claims.permissions ?? [],
-      dataScope: (claims.dataScope ?? 'SELF') as DataScope,
-      assignedStoreIds: claims.assignedStoreIds ?? [],
+    const authz: StaffAccessContext = {
+      staffUserId: claims.sub,
+      permissions: new Set(claims.permissions ?? []),
+      dataScopes: [(claims.dataScope ?? 'SELF') as DataScopeType],
+      storeIds: new Set(claims.assignedStoreIds ?? []),
     };
     if (!hasPermission(authz, requiredPermission)) throw new ForbiddenException('Permission denied');
 
@@ -51,8 +52,8 @@ export class AuthorizationGuard implements CanActivate {
     if (!resourceScope) return true;
 
     const storeId = resourceScope.storeIdParam ? request.params?.[resourceScope.storeIdParam] : undefined;
-    const ownerId = resourceScope.ownerIdParam ? request.params?.[resourceScope.ownerIdParam] : undefined;
-    if (!isResourceVisible(authz, { storeId, ownerId })) throw new ForbiddenException('Resource outside data scope');
+    const ownerStaffUserId = resourceScope.ownerIdParam ? request.params?.[resourceScope.ownerIdParam] : undefined;
+    if (!canAccessResource(authz, { storeId, ownerStaffUserId })) throw new ForbiddenException('Resource outside data scope');
     return true;
   }
 }
