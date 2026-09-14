@@ -7,9 +7,148 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum AccountStatus {
+  ACTIVE
+  DISABLED
+  LOCKED
+}
+
+enum DataScopeType {
+  GLOBAL
+  ASSIGNED_STORES
+  SELF
+}
+
 model SystemHealthMarker {
   id        BigInt   @id @default(autoincrement())
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("system_health_markers")
+}
+
+model ConsumerUser {
+  id             BigInt        @id @default(autoincrement())
+  wechatOpenId   String        @unique @map("wechat_open_id") @db.VarChar(128)
+  wechatUnionId  String?       @unique @map("wechat_union_id") @db.VarChar(128)
+  phone          String?       @unique @db.VarChar(32)
+  nickname       String?       @db.VarChar(128)
+  avatarUrl      String?       @map("avatar_url") @db.VarChar(1024)
+  status         AccountStatus @default(ACTIVE)
+  lastLoginAt    DateTime?     @map("last_login_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  sessions       ConsumerSession[]
+
+  @@map("consumer_users")
+}
+
+model ConsumerSession {
+  id               BigInt       @id @default(autoincrement())
+  consumerUserId   BigInt       @map("consumer_user_id")
+  refreshTokenHash String       @unique @map("refresh_token_hash") @db.VarChar(255)
+  expiresAt        DateTime     @map("expires_at")
+  revokedAt        DateTime?    @map("revoked_at")
+  ipAddress        String?      @map("ip_address") @db.VarChar(64)
+  userAgent        String?      @map("user_agent") @db.VarChar(512)
+  createdAt        DateTime     @default(now()) @map("created_at")
+  consumerUser     ConsumerUser @relation(fields: [consumerUserId], references: [id], onDelete: Cascade)
+
+  @@index([consumerUserId, expiresAt])
+  @@map("consumer_sessions")
+}
+
+model StaffUser {
+  id           BigInt        @id @default(autoincrement())
+  username     String        @unique @db.VarChar(64)
+  email        String?       @unique @db.VarChar(255)
+  phone        String?       @unique @db.VarChar(32)
+  passwordHash String        @map("password_hash") @db.VarChar(255)
+  displayName  String        @map("display_name") @db.VarChar(128)
+  status       AccountStatus @default(ACTIVE)
+  lastLoginAt  DateTime?     @map("last_login_at")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  roles        StaffUserRole[]
+  storeScopes  StaffStoreScope[]
+  sessions     StaffSession[]
+
+  @@map("staff_users")
+}
+
+model StaffSession {
+  id               BigInt    @id @default(autoincrement())
+  staffUserId      BigInt    @map("staff_user_id")
+  refreshTokenHash String    @unique @map("refresh_token_hash") @db.VarChar(255)
+  expiresAt        DateTime  @map("expires_at")
+  revokedAt        DateTime? @map("revoked_at")
+  ipAddress        String?   @map("ip_address") @db.VarChar(64)
+  userAgent        String?   @map("user_agent") @db.VarChar(512)
+  createdAt        DateTime  @default(now()) @map("created_at")
+  staffUser        StaffUser @relation(fields: [staffUserId], references: [id], onDelete: Cascade)
+
+  @@index([staffUserId, expiresAt])
+  @@map("staff_sessions")
+}
+
+model Role {
+  id            BigInt          @id @default(autoincrement())
+  code          String          @unique @db.VarChar(64)
+  name          String          @db.VarChar(128)
+  description   String?         @db.VarChar(512)
+  dataScopeType DataScopeType   @default(SELF) @map("data_scope_type")
+  isSystem      Boolean         @default(false) @map("is_system")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  staffUsers    StaffUserRole[]
+  permissions   RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          BigInt           @id @default(autoincrement())
+  code        String           @unique @db.VarChar(128)
+  name        String           @db.VarChar(128)
+  resource    String           @db.VarChar(64)
+  action      String           @db.VarChar(64)
+  description String?          @db.VarChar(512)
+  createdAt   DateTime         @default(now()) @map("created_at")
+  roles       RolePermission[]
+
+  @@index([resource, action])
+  @@map("permissions")
+}
+
+model StaffUserRole {
+  staffUserId BigInt    @map("staff_user_id")
+  roleId      BigInt    @map("role_id")
+  assignedAt  DateTime  @default(now()) @map("assigned_at")
+  staffUser   StaffUser @relation(fields: [staffUserId], references: [id], onDelete: Cascade)
+  role        Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([staffUserId, roleId])
+  @@index([roleId])
+  @@map("staff_user_roles")
+}
+
+model RolePermission {
+  roleId       BigInt     @map("role_id")
+  permissionId BigInt     @map("permission_id")
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+model StaffStoreScope {
+  staffUserId BigInt    @map("staff_user_id")
+  storeId     BigInt    @map("store_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  staffUser   StaffUser @relation(fields: [staffUserId], references: [id], onDelete: Cascade)
+
+  @@id([staffUserId, storeId])
+  @@index([storeId])
+  @@map("staff_store_scopes")
 }
