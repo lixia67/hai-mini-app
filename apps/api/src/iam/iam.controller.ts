@@ -44,6 +44,19 @@ export class IamController {
     return this.consumerAuth.loginWithWechatCode(code, this.meta(request));
   }
 
+  @Post('consumer/refresh')
+  consumerRefresh(@Body() body: { refreshToken?: unknown }, @Req() request: RequestMeta) {
+    const refreshToken = requireString(body.refreshToken, 'refreshToken', { min: 20, max: 512 });
+    return this.consumerAuth.refresh(refreshToken, this.meta(request));
+  }
+
+  @Post('consumer/logout')
+  async consumerLogout(@Body() body: { refreshToken?: unknown }) {
+    const refreshToken = requireString(body.refreshToken, 'refreshToken', { min: 20, max: 512 });
+    await this.consumerAuth.logout(refreshToken);
+    return { ok: true };
+  }
+
   @Get('session/me')
   @UseGuards(AuthorizationGuard)
   me(@Req() request: AuthenticatedRequest) {
