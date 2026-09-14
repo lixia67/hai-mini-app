@@ -1,0 +1,13 @@
+{
+  "name": "@xiaohai/miniprogram",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "build": "echo 'Use WeChat DevTools build pipeline'",
+    "dev": "echo 'Open apps/miniprogram in WeChat DevTools'",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'lint pending'",
+    "test": "echo 'tests pending'"
+  },
+  "devDependencies": { "typescript": "^5.9.2" }
+}

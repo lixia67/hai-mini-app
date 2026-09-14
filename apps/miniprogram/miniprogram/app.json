@@ -1,0 +1,11 @@
+{
+  "pages": ["pages/home/index", "pages/pangzhu/index", "pages/me/index"],
+  "window": { "navigationBarTitleText": "小海童话" },
+  "tabBar": {
+    "list": [
+      { "pagePath": "pages/home/index", "text": "首页" },
+      { "pagePath": "pages/pangzhu/index", "text": "胖竹全球" },
+      { "pagePath": "pages/me/index", "text": "我的" }
+    ]
+  }
+}

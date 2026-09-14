@@ -1,0 +1,8 @@
+{
+  "description": "小海童话 2.0",
+  "miniprogramRoot": "miniprogram/",
+  "compileType": "miniprogram",
+  "appid": "touristappid",
+  "projectname": "xiaohai-2",
+  "setting": { "useCompilerPlugins": ["typescript"] }
+}

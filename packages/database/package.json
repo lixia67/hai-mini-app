@@ -1,0 +1,12 @@
+{
+  "name": "@xiaohai/database",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "generate": "prisma generate",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy"
+  },
+  "dependencies": { "@prisma/client": "^6.15.0" },
+  "devDependencies": { "prisma": "^6.15.0" }
+}
