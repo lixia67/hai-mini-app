@@ -1,6 +1,7 @@
 import 'reflect-metadata';
-import { Module, Controller, Get } from '@nestjs/common';
+import { Controller, Get, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { IamModule } from './iam/iam.module';
 
 @Controller('health')
 class HealthController {
@@ -10,7 +11,10 @@ class HealthController {
   }
 }
 
-@Module({ controllers: [HealthController] })
+@Module({
+  imports: [IamModule],
+  controllers: [HealthController],
+})
 class AppModule {}
 
 async function bootstrap() {
