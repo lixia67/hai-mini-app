@@ -4,7 +4,7 @@ import { ConsumerAuthService } from './consumer-auth.service';
 import { IamController } from './iam.controller';
 import { PrismaService } from './prisma.service';
 import { StaffAuthService } from './staff-auth.service';
-import { UnconfiguredWechatLoginAdapter, WechatLoginAdapter } from './wechat-login.adapter';
+import { HttpWechatLoginAdapter, WechatLoginAdapter } from './wechat-login.adapter';
 
 @Module({
   controllers: [IamController],
@@ -13,7 +13,7 @@ import { UnconfiguredWechatLoginAdapter, WechatLoginAdapter } from './wechat-log
     StaffAuthService,
     ConsumerAuthService,
     AuthorizationGuard,
-    { provide: WechatLoginAdapter, useClass: UnconfiguredWechatLoginAdapter },
+    { provide: WechatLoginAdapter, useClass: HttpWechatLoginAdapter },
   ],
   exports: [WechatLoginAdapter],
 })
