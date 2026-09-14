@@ -8,8 +8,6 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: mysql://xiaohai:xiaohai@127.0.0.1:3306/xiaohai
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -19,7 +17,10 @@ jobs:
         with:
           node-version: 22
       - run: pnpm install --no-frozen-lockfile
-      - run: pnpm --filter @xiaohai/database exec prisma validate
+      - run: pnpm --filter @xiaohai/database generate
+      - run: pnpm --filter @xiaohai/database exec prisma validate --schema prisma/schema.prisma
+        env:
+          DATABASE_URL: mysql://xiaohai:xiaohai@localhost:3306/xiaohai
       - run: pnpm typecheck
-      - run: pnpm --filter @xiaohai/api test
+      - run: pnpm test
       - run: pnpm build

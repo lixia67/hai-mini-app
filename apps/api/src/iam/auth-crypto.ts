@@ -8,7 +8,7 @@ export type AccessTokenClaims = {
   sub: string;
   kind: 'consumer' | 'staff';
   permissions?: string[];
-  dataScope?: 'GLOBAL' | 'ASSIGNED_STORES' | 'SELF';
+  dataScopes?: Array<'GLOBAL' | 'ASSIGNED_STORES' | 'SELF'>;
   assignedStoreIds?: string[];
   iat: number;
   exp: number;
@@ -56,12 +56,10 @@ export function signAccessToken(
 export function verifyAccessToken(token: string, secret: string, nowSeconds = Math.floor(Date.now() / 1000)): AccessTokenClaims {
   const [header, payload, signature] = token.split('.');
   if (!header || !payload || !signature) throw new Error('INVALID_TOKEN');
-
   const body = `${header}.${payload}`;
   const expected = createHmac('sha256', secret).update(body).digest();
   const actual = Buffer.from(signature, 'base64url');
   if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) throw new Error('INVALID_TOKEN');
-
   const claims = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as AccessTokenClaims;
   if (!claims.sub || !claims.kind || !claims.exp || claims.exp <= nowSeconds) throw new Error('TOKEN_EXPIRED');
   return claims;
